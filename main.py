@@ -1,7 +1,7 @@
 import requests
 import csv
 from bs4 import BeautifulSoup
-from samshoparser import *
+from samshoparser import CharacterWebpageInfo, SamShoDataParser
 
 def getCharacters():
     with open('chars.csv', mode='r') as charCsv:
@@ -17,7 +17,8 @@ pageData = requests.get(rimuPage)
 pageObject = BeautifulSoup(pageData.text, 'lxml')
 
 frameDataTable = pageObject.find("div", class_="mw-parser-output").find("table", {"cellspacing": "0"}).find_all("tr")
+frameDataTable.pop(0)
 
-
+rowData = frameDataTable[0].find_all("td")
 
 print("done!")
