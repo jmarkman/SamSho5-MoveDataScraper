@@ -1,3 +1,6 @@
+import requests
+from bs4 import BeautifulSoup
+
 class CharacterWebpageInfo(object):
     def __init__(self, id, pageUrl):
         self.characterId = id
@@ -25,7 +28,9 @@ class SamShoMove(object):
         self.notes = notes
 
 class TableParser(object):
-    pass
+    def __init__(self, dataRows, char):
+        self.tableRows = dataRows
+        self.character = char
 
 
 class SamShoDataParser(object):
@@ -33,3 +38,13 @@ class SamShoDataParser(object):
         self.wikiUrl = "https://wiki.gbl.gg/w/Samurai_Shodown_V_Special/"
         self.characters = characters
 
+    def getDataForAllChars(self):
+        for currentChar in self.characters:
+            dataTable = self._getFrameDataTableForCharacter(currentChar)
+
+    def _getFrameDataTableForCharacter(self, character: CharacterWebpageInfo):
+        pageUrl = f"{self.wikiUrl}{character.characterPageUrlName}"
+        pageData = requests.get(pageUrl)
+        pageObject = BeautifulSoup(pageData.text, 'lxml')
+        frameDataTable = pageObject.find("div", class_="mw-parser-output").find("table", {"cellspacing":"0"}).find_all("tr")
+        return frameDataTable
