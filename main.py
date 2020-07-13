@@ -12,13 +12,6 @@ def getCharacters():
 chars = getCharacters()
 dataParser = SamShoDataParser(chars)
 
-rimuPage = "https://wiki.gbl.gg/w/Samurai_Shodown_V_Special/Rimururu"
-pageData = requests.get(rimuPage)
-pageObject = BeautifulSoup(pageData.text, 'lxml')
-
-frameDataTable = pageObject.find("div", class_="mw-parser-output").find("table", {"cellspacing": "0"}).find_all("tr")
-frameDataTable.pop(0)
-
-rowData = frameDataTable[0].find_all("td")
+moves = dataParser.getDataForAllChars()
 
 print("done!")
