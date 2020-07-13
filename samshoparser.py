@@ -41,42 +41,71 @@ class TableParser(object):
             moveData = moveRow.find_all("td")
 
     def _formatRowData(self, data):
-        moveCancelData = self._formatMoveCancelData(data[5].text)
-        moveClashData = self._formatWeaponClashData(data[6].text)
+        formattedData = {}
+        formattedData["MoveCancelData"] = self._formatMoveCancelData(data[5].text)
+        formattedData["MoveClashData"] = self._formatWeaponClashData(data[6].text)
+        formattedData["OnHitData"] = self._formatAdvantageData(data[7].text)
+        formattedData["OnBackhitData"] = self._formatAdvantageData(data[8].text)
+        formattedData["OnBlockData"] = self._formatAdvantageData(data[9].text)
+        formattedData["Guard"] = self._formatGuardLevelData(data[10].text)
+        return formattedData
 
-    def _formatMoveCancelData(self, cancelData):
-        moveCancelData = {
-            "EarlyCancelStart": None,
-            "EarlyCancelEnd": None,
-            "LateCancelStart": None,
-            "LateCancelEnd": None
-        }
+    def _formatMoveCancelData(self, cancelData: str):
+        rowDataFormatter = RowDataFormatter()
+        moveCancelData = { }
         if cancelData == "x":
-            return moveCancelData
+            return None
         else:
             if "/" in cancelData:
                 splitCancelData = cancelData.split("/")
-                earlyCancelRange = RowDataFormatter.splitFrameRangeMoveData(splitCancelData[0])
-                lateCancelRange = RowDataFormatter.splitFrameRangeMoveData(splitCancelData[1])
+                earlyCancelRange = rowDataFormatter.splitFrameRangeMoveData(splitCancelData[0])
+                lateCancelRange = rowDataFormatter.splitFrameRangeMoveData(splitCancelData[1])
                 moveCancelData["EarlyCancelStart"] = int(earlyCancelRange[0])
                 moveCancelData["EarlyCancelEnd"] = int(earlyCancelRange[1])
                 moveCancelData["LateCancelStart"] = int(lateCancelRange[0])
                 moveCancelData["LateCancelEnd"] = int(lateCancelRange[1])
+            elif "end" in cancelData:
+                # Enja has a 3-special setup, where the second special can cancel into the third
+                # from frame 13 all the way until the opponent hits the wall and bounces back
+                # towards Enja. This is the only move in the game like this (and is consequently)
+                # the hardest move to land in SamSho 5 Special! The cancel end value will be represented
+                # by 999 until I look into this more
+                splitEnjaSpecial = rowDataFormatter.splitFrameRangeMoveData(cancelData)
+                moveCancelData["EarlyCancelStart"] = int(splitEnjaSpecial[0])
+                moveCancelData["EarlyCancelEnd"] = 999
             else:
-                cancelRange = RowDataFormatter.splitFrameRangeMoveData(cancelData)
+                cancelRange = rowDataFormatter.splitFrameRangeMoveData(cancelData)
                 moveCancelData["EarlyCancelStart"] = int(cancelRange[0])
                 moveCancelData["EarlyCancelEnd"] = int(cancelRange[1])
         return moveCancelData
 
-    def _formatWeaponClashData(self, weaponClashData):
+    def _formatWeaponClashData(self, weaponClashData: str):
+        rowDataFormatter = RowDataFormatter()
         if "~" in weaponClashData:
-            weaponClashRange = RowDataFormatter.splitFrameRangeMoveData(weaponClashData)
+            weaponClashRange = rowDataFormatter.splitFrameRangeMoveData(weaponClashData)
             return {
                 "WeaponClashStart": int(weaponClashRange[0]),
                 "WeaponClashEnd": int(weaponClashRange[1])
             }
         else:
-            return int(RowDataFormatter.extractSingleFrameWeaponClashData(weaponClashData))
+            return int(rowDataFormatter.extractSingleFrameWeaponClashData(weaponClashData))
+
+    def _formatAdvantageData(self, advData: str):
+        if advData.lower() == "kd":
+            return None
+        else:
+            try:
+                return int(advData)
+            except ValueError as valErr:
+                return None
+
+    def _formatGuardLevelData(self, guardData: str):
+        if guardData.lower() == "low":
+            return 0
+        elif guardData.lower() == "mid":
+            return 1
+        else:
+            return 2
 
 class SamShoDataParser(object):
     def __init__(self, characters):
