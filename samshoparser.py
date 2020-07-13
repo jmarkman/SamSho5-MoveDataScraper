@@ -92,14 +92,15 @@ class TableParser(object):
             splitClashData = weaponClashData.split("/")
             earlyWeaponClash = rowDataFormatter.splitFrameRangeMoveData(splitClashData[0])
             lateWeaponClash = rowDataFormatter.splitFrameRangeMoveData(splitClashData[1])
+            return weaponClashStorage
         if "~" in weaponClashData:
             weaponClashRange = rowDataFormatter.splitFrameRangeMoveData(weaponClashData)
             weaponClashStorage.append(weaponClashRange)
-            return weaponClashData
+            return weaponClashStorage
         else:
             weaponClashFrame = rowDataFormatter.extractSingleFrameWeaponClashData(weaponClashData)
             weaponClashStorage.append(weaponClashFrame)
-            return weaponClashData
+            return weaponClashStorage
 
     def _formatAdvantageData(self, advData: str):
         if advData.lower() == "kd":
@@ -136,6 +137,13 @@ class SamShoDataParser(object):
         pageUrl = f"{self.wikiUrl}{character.characterPageUrlName}"
         pageData = requests.get(pageUrl)
         pageObject = BeautifulSoup(pageData.text, 'lxml')
-        frameDataTable = pageObject.find("div", class_="mw-parser-output").find("table", {"cellspacing":"0"}).find_all("tr")
-        frameDataTable.pop(0)
-        return frameDataTable
+        tables = pageObject.find("div", class_="mw-parser-output").find_all("table", {"cellspacing":"0"})
+        
+        if len(tables) == 1:
+            frameDataTable = tables[0].find_all("tr")
+            frameDataTable.pop(0)
+            return frameDataTable
+        else:
+            frameDataTable = tables[1].find_all("tr")
+            frameDataTable.pop(0)
+            return frameDataTable
