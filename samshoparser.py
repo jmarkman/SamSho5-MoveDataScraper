@@ -70,8 +70,8 @@ class TableParser(object):
                 splitCancelData = cancelData.split("/")
                 earlyCancelRange = rowDataFormatter.splitFrameRangeMoveData(splitCancelData[0])
                 lateCancelRange = rowDataFormatter.splitFrameRangeMoveData(splitCancelData[1])
-                moveCancelData.append(earlyCancelRange)
-                moveCancelData.append(lateCancelRange)
+                moveCancelData.append([int(x) for x in earlyCancelRange])
+                moveCancelData.append([int(x) for x in lateCancelRange])
             elif "end" in cancelData:
                 # Enja has a 3-special setup, where the second special can cancel into the third
                 # from frame 13 all the way until the opponent hits the wall and bounces back
@@ -79,10 +79,10 @@ class TableParser(object):
                 # the hardest move to land in SamSho 5 Special! The cancel end value will be represented
                 # by 999 until I look into this more
                 splitEnjaSpecial = rowDataFormatter.splitFrameRangeMoveData(cancelData)
-                moveCancelData.append([splitEnjaSpecial[0], 999])
+                moveCancelData.append([int(splitEnjaSpecial[0]), 999])
             else:
                 cancelRange = rowDataFormatter.splitFrameRangeMoveData(cancelData)
-                moveCancelData.append(cancelRange)
+                moveCancelData.append(int(cancelRange))
         return moveCancelData
 
     def _formatWeaponClashData(self, weaponClashData: str):
@@ -92,14 +92,16 @@ class TableParser(object):
             splitClashData = weaponClashData.split("/")
             earlyWeaponClash = rowDataFormatter.splitFrameRangeMoveData(splitClashData[0])
             lateWeaponClash = rowDataFormatter.splitFrameRangeMoveData(splitClashData[1])
+            weaponClashStorage.append([int(x) for x in earlyWeaponClash])
+            weaponClashStorage.append([int(x) for x in lateWeaponClash])
             return weaponClashStorage
         if "~" in weaponClashData:
             weaponClashRange = rowDataFormatter.splitFrameRangeMoveData(weaponClashData)
-            weaponClashStorage.append(weaponClashRange)
+            weaponClashStorage.append([int(x) for x in weaponClashRange])
             return weaponClashStorage
         else:
             weaponClashFrame = rowDataFormatter.extractSingleFrameWeaponClashData(weaponClashData)
-            weaponClashStorage.append(weaponClashFrame)
+            weaponClashStorage.append(int(weaponClashFrame))
             return weaponClashStorage
 
     def _formatAdvantageData(self, advData: str):
