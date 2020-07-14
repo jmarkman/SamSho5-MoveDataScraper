@@ -61,50 +61,49 @@ class TableParser(object):
         return extractedMoves
 
     def _formatMoveCancelData(self, cancelData: str):
+        """Given move cancel data as a string, will return a list of
+        integer values representing on what frames a given move can be
+        canceled into another
+        """
         rowDataFormatter = RowDataFormatter()
         moveCancelData: list = []
         if cancelData == "x":
-            return None
+            # This means the move cannot be canceled according to the wiki
+            return moveCancelData
         else:
             if "/" in cancelData:
-                splitCancelData = cancelData.split("/")
-                earlyCancelRange = rowDataFormatter.splitFrameRangeMoveData(splitCancelData[0])
-                lateCancelRange = rowDataFormatter.splitFrameRangeMoveData(splitCancelData[1])
-                moveCancelData.append([int(x) for x in earlyCancelRange])
-                moveCancelData.append([int(x) for x in lateCancelRange])
+                moveCancelData = rowDataFormatter.splitGroupedFrameDataAndReturnAsList(cancelData)
             elif "end" in cancelData:
-                # Enja has a 3-special setup, where the second special can cancel into the third
-                # from frame 13 all the way until the opponent hits the wall and bounces back
-                # towards Enja. This is the only move in the game like this (and is consequently)
-                # the hardest move to land in SamSho 5 Special! The cancel end value will be represented
-                # by 999 until I look into this more
-                splitEnjaSpecial = rowDataFormatter.splitFrameRangeMoveData(cancelData)
-                moveCancelData.append([int(splitEnjaSpecial[0]), 999])
+                moveCancelData = rowDataFormatter.splitEnjaRikudouRekka(cancelData)
             else:
-                cancelRange = rowDataFormatter.splitFrameRangeMoveData(cancelData)
-                moveCancelData.append(int(cancelRange))
+                moveCancelData = rowDataFormatter.splitFrameRangeMoveDataAsListOfInt(cancelData)
         return moveCancelData
 
-    def _formatWeaponClashData(self, weaponClashData: str):
+    def _formatWeaponClashData(self, clashData: str):
+        """Given weapon clash data as a string, will return a list of
+        integer values representing on what frames a given move can
+        clash with the opponent's move (i.e., when Haohmaru and Gaoh
+        swing their weapons and the moves meet on screen at specific
+        frames, they'll "clash" and the disarmament minigame will
+        occur)
+        """
         rowDataFormatter = RowDataFormatter()
-        weaponClashStorage: list = []
-        if "/" in weaponClashData:
-            splitClashData = weaponClashData.split("/")
-            earlyWeaponClash = rowDataFormatter.splitFrameRangeMoveData(splitClashData[0])
-            lateWeaponClash = rowDataFormatter.splitFrameRangeMoveData(splitClashData[1])
-            weaponClashStorage.append([int(x) for x in earlyWeaponClash])
-            weaponClashStorage.append([int(x) for x in lateWeaponClash])
-            return weaponClashStorage
-        if "~" in weaponClashData:
-            weaponClashRange = rowDataFormatter.splitFrameRangeMoveData(weaponClashData)
-            weaponClashStorage.append([int(x) for x in weaponClashRange])
-            return weaponClashStorage
+        formattedClashData: list = []
+        if "/" in clashData:
+            formattedClashData = rowDataFormatter.splitGroupedFrameDataAndReturnAsList(clashData)
+        elif "~" in clashData or "-" in clashData:
+            formattedClashData = rowDataFormatter.splitFrameRangeMoveDataAsListOfInt(clashData)
         else:
-            weaponClashFrame = rowDataFormatter.extractSingleFrameWeaponClashData(weaponClashData)
-            weaponClashStorage.append(int(weaponClashFrame))
-            return weaponClashStorage
+            singleFrameClashData = rowDataFormatter.parseSingularFrameAsInteger(clashData)
+            formattedClashData.append(singleFrameClashData)
+        return formattedClashData
 
     def _formatAdvantageData(self, advData: str):
+        """Given advantage data as a string, parse the integer value
+        representing the plus/minus value of that move after an action.
+        On moves that knock down the opponent on contact, this method
+        will return None.
+        """
         if advData.lower() == "kd":
             return None
         else:
@@ -114,6 +113,10 @@ class TableParser(object):
                 return None
 
     def _formatGuardLevelData(self, guardData: str):
+        """Given guard data as a string, 'converts' that string
+        to a corresponding integer value so it fits in the sqlite
+        database
+        """
         if guardData.lower() == "low":
             return 0
         elif guardData.lower() == "mid":
