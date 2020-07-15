@@ -12,6 +12,11 @@ class RowDataFormatter(object):
         if "(" in frameData:
             return self._extractSingleFrameDataAsInteger(frameData)
         else:
+            if frameData.isalpha():
+            # There's an edge case floating around where there's just
+            # a "Y" as some single piece of data. I haven't figured
+            # out what this "Y" means so just return null for now
+                return None
             return int(frameData)
 
     def splitFrameRangeMoveDataAsListOfInt(self, cancelData: str):
@@ -63,16 +68,27 @@ class RowDataFormatter(object):
         firstData = formatFrameDataAccordingToCase(splitData[0])
         secondData = formatFrameDataAccordingToCase(splitData[1])
 
-        if firstData is int:
+        if isinstance(firstData, int):
             splitResults.append(firstData)
         else:
             splitResults.extend(firstData)
 
-        if secondData is int:
+        if isinstance(secondData, int):
             splitResults.append(secondData)
         else:
             splitResults.extend(secondData)
         return splitResults
+
+    def convertStringValueForPurelyIntegerData(self, basicData: str):
+        """Converts the string values for purely integer-based data
+        like move damage, active frames, etc. If the move doesn't deal
+        damage or have active frames (i.e., a command grab), this will
+        return null
+        """
+        if basicData.isnumeric():
+            return int(basicData)
+        else:
+            return None
 
     def _extractSingleFrameDataAsInteger(self, data: str):
         """Trims the singular frame such that the parenthesis containing

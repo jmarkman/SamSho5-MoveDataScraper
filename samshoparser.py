@@ -43,11 +43,11 @@ class TableParser(object):
         for moveRow in self.tableRows:
             finalData = {}
             moveData = moveRow.find_all("td")            
-            finalData["Name"] = moveData[0].text
-            finalData["Damage"] = moveData[1].text
-            finalData["Startup"] = moveData[2].text
-            finalData["ActiveFrames"] = moveData[3].text
-            finalData["TotalFrames"] = moveData[4].text
+            finalData["Name"] = self._formatBasicAttributes(moveData[0].text)
+            finalData["Damage"] = self._formatBasicAttributes(moveData[1].text)
+            finalData["Startup"] = self._formatBasicAttributes(moveData[2].text)
+            finalData["ActiveFrames"] = self._formatBasicAttributes(moveData[3].text)
+            finalData["TotalFrames"] = self._formatBasicAttributes(moveData[4].text)
             finalData["Cancel"] = self._formatMoveCancelData(moveData[5].text)
             finalData["Clash"] = self._formatWeaponClashData(moveData[6].text)
             finalData["OnHit"] = self._formatAdvantageData(moveData[7].text)
@@ -60,6 +60,10 @@ class TableParser(object):
             extractedMoves.append(move)
         return extractedMoves
 
+    def _formatBasicAttributes(self, attr: str):
+        rdf = RowDataFormatter()
+        return rdf.convertStringValueForPurelyIntegerData(attr)
+
     def _formatMoveCancelData(self, cancelData: str):
         """Given move cancel data as a string, will return a list of
         integer values representing on what frames a given move can be
@@ -69,11 +73,14 @@ class TableParser(object):
         moveCancelData: list = []
         if cancelData == "x":
             # This means the move cannot be canceled according to the wiki
+            moveCancelData = [None, None, None, None]
             return moveCancelData
         else:
             if "/" in cancelData:
                 moveCancelData = rowDataFormatter.splitGroupedFrameDataAndReturnAsList(cancelData)
             elif "end" in cancelData:
+                # Enja's the only one who has frame data that includes the word "end"
+                # in it, so if we hit this condition, we're at Enja's 236B
                 moveCancelData = rowDataFormatter.splitEnjaRikudouRekka(cancelData)
             else:
                 moveCancelData = rowDataFormatter.splitFrameRangeMoveDataAsListOfInt(cancelData)
