@@ -1,4 +1,5 @@
 import requests
+import re
 from bs4 import BeautifulSoup
 from dataformat import RowDataFormatter
 
@@ -43,7 +44,7 @@ class TableParser(object):
         for moveRow in self.tableRows:
             finalData = {}
             moveData = moveRow.find_all("td")            
-            finalData["Name"] = self._formatBasicAttributes(moveData[0].text)
+            finalData["Name"] = moveData[0].text
             finalData["Damage"] = self._formatBasicAttributes(moveData[1].text)
             finalData["Startup"] = self._formatBasicAttributes(moveData[2].text)
             finalData["ActiveFrames"] = self._formatBasicAttributes(moveData[3].text)
@@ -82,8 +83,11 @@ class TableParser(object):
                 # Enja's the only one who has frame data that includes the word "end"
                 # in it, so if we hit this condition, we're at Enja's 236B
                 moveCancelData = rowDataFormatter.splitEnjaRikudouRekka(cancelData)
-            else:
+            elif self._isSingularFrameRange(cancelData):
                 moveCancelData = rowDataFormatter.splitFrameRangeMoveDataAsListOfInt(cancelData)
+                moveCancelData.extend([None, None])
+            else:
+                moveCancelData = rowDataFormatter.parseSingularFrameAsInteger(cancelData)
         return moveCancelData
 
     def _formatWeaponClashData(self, clashData: str):
@@ -98,11 +102,11 @@ class TableParser(object):
         formattedClashData: list = []
         if "/" in clashData:
             formattedClashData = rowDataFormatter.splitGroupedFrameDataAndReturnAsList(clashData)
-        elif "~" in clashData or "-" in clashData:
+        elif self._isSingularFrameRange(clashData):
             formattedClashData = rowDataFormatter.splitFrameRangeMoveDataAsListOfInt(clashData)
+            formattedClashData.extend([None, None])
         else:
-            singleFrameClashData = rowDataFormatter.parseSingularFrameAsInteger(clashData)
-            formattedClashData.append(singleFrameClashData)
+            formattedClashData = rowDataFormatter.parseSingularFrameAsInteger(clashData)
         return formattedClashData
 
     def _formatAdvantageData(self, advData: str):
@@ -130,6 +134,14 @@ class TableParser(object):
             return 1
         else:
             return 2
+
+    def _isSingularFrameRange(self, input: str):
+        """Verifies that the input is a range of frames"""
+        match = re.search("\d+[-~]\d+", input)
+        if match:
+            return True
+        else:
+            return False
 
 class SamShoDataParser(object):
     def __init__(self, characters):

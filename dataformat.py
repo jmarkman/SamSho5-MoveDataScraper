@@ -9,15 +9,19 @@ class RowDataFormatter(object):
         determine if there is a parenthesis counting that one frame, and
         return just the frame value as an integer.
         """
+        parsedFrameData = []
+        data = None
         if "(" in frameData:
-            return self._extractSingleFrameDataAsInteger(frameData)
+            data = self._extractSingleFrameDataAsInteger(frameData)
         else:
             if frameData.isalpha():
             # There's an edge case floating around where there's just
             # a "Y" as some single piece of data. I haven't figured
             # out what this "Y" means so just return null for now
-                return None
-            return int(frameData)
+                data = None
+        parsedFrameData.append(data)
+        parsedFrameData.extend([None, None, None])
+        return parsedFrameData
 
     def splitFrameRangeMoveDataAsListOfInt(self, cancelData: str):
         """Takes a range of frames separated by either a ~ or -
@@ -40,14 +44,19 @@ class RowDataFormatter(object):
         the hardest move to land in SamSho 5 Special!); the cancel end
         value will be represented by 999 until I look into this more.
         """
-        parsedRekka = rikudouRekka[0:rikudouRekka.find("(")]
-        rekkaParts = []
-        if "~" in parsedRekka:
-            rekkaParts = parsedRekka.split("~")
-        elif "-" in parsedRekka:
-            rekkaParts = parsedRekka.split("-")
+        parsedRekkaString = rikudouRekka[0:rikudouRekka.find("(")]
+        rekkaParts, parsedRekkaFrameData = [], []
+        if "~" in parsedRekkaString:
+            rekkaParts = parsedRekkaString.split("~")
+        elif "-" in parsedRekkaString:
+            rekkaParts = parsedRekkaString.split("-")
         rekkaParts[1] = "999"
-        return [int(x) for x in rekkaParts]
+
+        for part in rekkaParts:
+            parsedRekkaFrameData.append(int(part))
+        
+        parsedRekkaFrameData.extend([None, None])
+        return parsedRekkaFrameData
 
     def splitGroupedFrameDataAndReturnAsList(self, groupedFrames: str):
         """Splits frame data grouped by / (backslash), parses each section,
