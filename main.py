@@ -12,6 +12,6 @@ def getCharacters():
 chars = getCharacters()
 dataParser = SamShoDataParser(chars)
 
-moves = dataParser.getDataForAllChars()
+moves = [move.toTuple() for move in dataParser.getDataForAllChars()]
 
 print("done!")

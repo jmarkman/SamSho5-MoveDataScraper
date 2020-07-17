@@ -28,6 +28,32 @@ class SamShoMove(object):
         self.guardLevel = moveData["Guard"]
         self.notes = moveData["Notes"]
 
+    def toTuple(self):
+        cancelWindowStart, cancelWindowEnd, lateCancelWindowStart, lateCancelWindowEnd = self.cancelWindows
+        clashWindowStart, clashWindowEnd, lateClashWindowStart, lateClashWindowEnd = self.weaponClashWindows
+        return (
+            self.characterId, 
+            self.name, 
+            self.damage, 
+            self.startupFrames, 
+            self.activeFrames, 
+            self.totalFrames, 
+            cancelWindowStart, 
+            cancelWindowEnd, 
+            lateCancelWindowStart, 
+            lateCancelWindowEnd,
+            clashWindowStart,
+            clashWindowEnd,
+            lateClashWindowStart,
+            lateClashWindowEnd,
+            self.advantageOnHit,
+            self.advantageOnBackhit,
+            self.advantageOnBlock,
+            self.advantageKnockdown,
+            self.guardLevel,
+            self.notes
+            )
+
     def _assignKnockdown(self, onHit, onBackhit):
         if onHit is None and onBackhit is None:
             return True
@@ -43,7 +69,9 @@ class TableParser(object):
         extractedMoves = []
         for moveRow in self.tableRows:
             finalData = {}
-            moveData = moveRow.find_all("td")            
+            moveData = moveRow.find_all("td")    
+            notes: str = moveData[11].text
+
             finalData["Name"] = moveData[0].text
             finalData["Damage"] = self._formatBasicAttributes(moveData[1].text)
             finalData["Startup"] = self._formatBasicAttributes(moveData[2].text)
@@ -55,7 +83,7 @@ class TableParser(object):
             finalData["OnBackhit"] = self._formatAdvantageData(moveData[8].text)
             finalData["OnBlock"] = self._formatAdvantageData(moveData[9].text)
             finalData["Guard"] = self._formatGuardLevelData(moveData[10].text)
-            finalData["Notes"] = moveData[11].text
+            finalData["Notes"] = notes.strip()
 
             move = SamShoMove(self.characterId, finalData)
             extractedMoves.append(move)

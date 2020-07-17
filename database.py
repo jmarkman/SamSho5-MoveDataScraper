@@ -36,36 +36,21 @@ class SamShoDatabase(object):
         insertQuery = self._buildInsertQuery()
         try:
             for move in moves:
-                cursor.execute(insertQuery, )
+                cursor.execute(insertQuery, move)
         except sqlite3.Error as sqlErr:
             conn.rollback()
 
+    def disconnect(self, conn: sqlite3.Connection):
+        conn.close()
+
     def _buildInsertQuery(self):
-        query = f"insert into {self.moveTableName}"
-        colIdx = 0
-        while colIdx < len(self.columns):
-            if colIdx == 0:
-                query += f"({self.columns[colIdx]}, "
-                colIdx += 1
-            elif colIdx == len(colIdx) - 1:
-                query += f"{self.columns[colIdx]})"
-                colIdx += 1
-            else:
-                query += f"{self.columns[colIdx], }"
-                colIdx += 1
+        """Generate the insert statement for populating the Moves table"""
+        # For posterity: https://stackoverflow.com/a/13378570
+        sql = []
+        sql.append(f"insert into {self.moveTableName} (")
+        sql.append(", ".join(self.columns))
+        sql.append(") values (")
+        sql.append(", ".join(["?" for x in self.columns]))
+        sql.append(")")
 
-        query += " values "
-
-        questionMarkIdx = 0
-        while questionMarkIdx < len(self.columns):
-            if questionMarkIdx == 0:
-                query += "(?,"
-                questionMarkIdx += 1
-            elif questionMarkIdx == len(colIdx) - 1:
-                query += "?)"
-                questionMarkIdx += 1
-            else:
-                query += "?"
-                questionMarkIdx += 1
-        
-        return query
+        return "".join(sql)
