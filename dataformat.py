@@ -72,18 +72,20 @@ class RowDataFormatter(object):
             if "~" in data or "-" in data:
                 return self.splitFrameRangeMoveDataAsListOfInt(data)
             else:
-                return self.parseSingularFrameAsInteger(data)
+                return int(self._extractSingleFrameDataAsInteger(data))
 
         firstData = formatFrameDataAccordingToCase(splitData[0])
         secondData = formatFrameDataAccordingToCase(splitData[1])
 
         if isinstance(firstData, int):
             splitResults.append(firstData)
+            splitResults.append(None)
         else:
             splitResults.extend(firstData)
 
         if isinstance(secondData, int):
             splitResults.append(secondData)
+            splitResults.append(None)
         else:
             splitResults.extend(secondData)
         return splitResults

@@ -31,14 +31,16 @@ class SamShoDatabase(object):
     def connect(self):
         return sqlite3.connect(self.databasePath)
 
-    def insertIntoMoveTable(self, conn: sqlite3.Connection, moves: list):
+    def insertIntoMoveTable(self, moves: list):
+        conn = self.connect()
         cursor = conn.cursor()
         insertQuery = self._buildInsertQuery()
         try:
-            for move in moves:
-                cursor.execute(insertQuery, move)
+            cursor.executemany(insertQuery, moves)
         except sqlite3.Error as sqlErr:
             conn.rollback()
+        conn.commit()
+        self.disconnect(conn)
 
     def disconnect(self, conn: sqlite3.Connection):
         conn.close()
