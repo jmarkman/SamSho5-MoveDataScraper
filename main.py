@@ -10,7 +10,7 @@ def getCharacters():
         chars = [CharacterWebpageInfo(row[0], row[1]) for row in csvReader]
     return chars
 
-dbPath = ""
+dbPath = "" # TODO: read this as input
 chars = getCharacters()
 dataParser = SamShoDataParser(chars)
 
@@ -18,6 +18,8 @@ moves = [move.toTuple() for move in dataParser.getDataForAllChars()]
 
 database = SamShoDatabase(dbPath)
 
-database.insertIntoMoveTable(moves)
+dbConn = database.connect()
+database.insertIntoMoveTable(dbConn, moves)
+database.disconnect(dbConn)
 
 print("done!")
