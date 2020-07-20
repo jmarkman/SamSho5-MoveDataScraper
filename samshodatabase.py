@@ -1,5 +1,4 @@
 import sqlite3
-from samshoparser import SamShoMove
 
 class SamShoDatabase(object):
     def __init__(self, dbPath):
