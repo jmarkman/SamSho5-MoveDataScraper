@@ -29,6 +29,9 @@ class SamShoMove(object):
         self.notes = moveData["Notes"]
 
     def toTuple(self):
+        """Creates a tuple of the move object DTO to use 
+        during the sql insert operation
+        """
         cancelWindowStart, cancelWindowEnd, lateCancelWindowStart, lateCancelWindowEnd = self.cancelWindows
         clashWindowStart, clashWindowEnd, lateClashWindowStart, lateClashWindowEnd = self.weaponClashWindows
         return (
@@ -179,6 +182,7 @@ class SamShoDataParser(object):
     def getDataForAllChars(self):
         dataForChars: list = []
         for currentChar in self.characters:
+            print(f"Getting move data for {currentChar.characterPageUrlName}")
             dataTable = self._getFrameDataTableForCharacter(currentChar)
             tableParser = TableParser(dataTable, currentChar.characterId)
             currentCharMoves = tableParser.extractMovesFromTable()
@@ -195,7 +199,9 @@ class SamShoDataParser(object):
             frameDataTable = tables[0].find_all("tr")
             frameDataTable.pop(0)
             return frameDataTable
-        else:
+        else: 
+            # Sometimes a character will have a table earlier in their character page
+            # This table usually highlights a specific moveset or mechanic
             frameDataTable = tables[1].find_all("tr")
             frameDataTable.pop(0)
             return frameDataTable
