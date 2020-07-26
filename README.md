@@ -1,4 +1,4 @@
-# Samurai Shodown V Special - Move Data Parser
+# Samurai Shodown V Special - Move Data Scraper
 
 I wrote this Python utility to assist in a side project. It uses the Mizuumi wiki page for Samurai Shodown V Special to gather the move data for each character in the game, formats the data in a more sql(ite) frinedly manner, and finally pushes the parsed information to a local sqlite database that has already been created.
 
